@@ -52,4 +52,21 @@ router.post('/login', async (req, res) => {
   }
 });
 
-module.exports = router; 
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Yetkilendirme gerekli' });
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ error: 'Geçersiz token' });
+    }
+    req.user = user;
+    next();
+  });
+}
+
+module.exports = { router, authenticateToken }; 
